@@ -1,0 +1,162 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sentiment Analyzer — Readout</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'sentiment/style.css' %}">
+</head>
+<body>
+<div class="wrap">
+  <h1 class="title">Sentiment<br><em>Readout</em></h1>
+
+  <!-- ============ INPUT ============ -->
+  <form class="input-card" method="post" action="{% url 'analyze' %}" id="analyze-form">
+    {% csrf_token %}
+    <label for="review-text">Paste a review to run</label>
+    <textarea id="review-text" name="review_text" placeholder="Type or paste the text you want analyzed…">{{ original_text|default:"" }}</textarea>
+    <div class="form-footer">
+      <span class="char-hint" id="char-count">0 characters</span>
+      <div class="button-group">
+       <button type="button" class="clear-btn" id="clear-btn">Clear</button>
+       <button type="submit" class="run-btn">
+        <span class="dot"></span> Run Analysis</button>
+      </div>
+    </div>
+  </form>
+<br><br>
+  <div class="input-card" style="margin-top: 28px;">
+
+    <label>Upload CSV File</label>
+
+    <form method="POST"
+          action="{% url 'analyze_csv' %}"
+          enctype="multipart/form-data">
+
+        {% csrf_token %}
+
+        <input type="file" name="csv_file" accept=".csv">
+
+        <div class="form-footer">
+            <button type="submit" class="run-btn">
+                Analyze CSV
+            </button>
+        </div>
+
+    </form>
+
+</div>
+
+  {% if result %}
+  <div class="perf">— exhibit —</div>
+
+  <div class="result-block">
+
+    <!-- ============ VERDICT + GAUGE ============ -->
+    <div class="card verdict-card {% if sentiment == 'Positive' %}positive{% else %}negative{% endif %}" style="margin-bottom:16px;">
+      <span class="shine"></span>
+      <div class="eyebrow"><span>Verdict</span><span class="idx">01</span></div>
+      <div class="verdict-emoji">{% if sentiment == "Positive" %}😊{% else %}☹️{% endif %}</div>
+      <div class="verdict-label {% if sentiment == 'Positive' %}positive{% else %}negative{% endif %}">
+        {{ sentiment }}
+      </div>
+
+      <div class="gauge">
+        <svg viewBox="0 0 200 115" id="gauge-svg">
+          <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#EDEEE9" stroke-width="14" stroke-linecap="round"/>
+          <path id="gauge-fill" d="M 20 100 A 80 80 0 0 1 180 100" fill="none"
+                stroke="{% if sentiment == 'Positive' %}#1F8A5F{% else %}#C4432B{% endif %}"
+                stroke-width="14" stroke-linecap="round"
+                stroke-dasharray="251.3" stroke-dashoffset="251.3"/>
+          <g id="gauge-ticks"></g>
+        </svg>
+        <div class="gauge-value">confidence &nbsp;<strong id="gauge-number">0%</strong></div>
+      </div>
+    </div>
+
+    <!-- ============ PROBABILITY BREAKDOWN ============ -->
+    <div class="card" style="margin-bottom:16px;">
+      <div class="eyebrow"><span>Probability breakdown</span><span class="idx">02</span></div>
+
+      <div class="prob-row is-positive">
+        <div class="prob-label">
+          <span class="lbl-name">👍 Positive</span>
+          <span class="lbl-pct">{{ positive_prob|default:0 }}%</span>
+        </div>
+        <div class="prob-track"><div class="prob-fill positive" data-target="{{ positive_prob|default:0 }}"></div></div>
+      </div>
+      <div class="prob-row is-negative">
+        <div class="prob-label">
+          <span class="lbl-name">👎 Negative</span>
+          <span class="lbl-pct">{{ negative_prob|default:0 }}%</span>
+        </div>
+        <div class="prob-track"><div class="prob-fill negative" data-target="{{ negative_prob|default:0 }}"></div></div>
+      </div>
+    </div>
+
+    <!-- ============ REVIEW STATISTICS ============ -->
+<div class="card" style="margin-bottom:16px;">
+  <div class="eyebrow">
+    <span>Review statistics</span>
+    <span class="idx">03</span>
+  </div>
+
+  <div class="stats-grid">
+
+    <!-- Words -->
+    <div class="stat-tile">
+      <div class="icon">📝</div>
+      <div class="num"
+           data-count="{% if csv_result %}{{ total_words|default:0 }}{% else %}{{ word_count|default:0 }}{% endif %}">
+        0
+      </div>
+      <div class="lbl">Words</div>
+    </div>
+
+
+    <!-- Characters -->
+    <div class="stat-tile">
+      <div class="icon">🔤</div>
+      <div class="num"
+           data-count="{% if csv_result %}{{ total_characters|default:0 }}{% else %}{{ char_count|default:0 }}{% endif %}">
+        0
+      </div>
+      <div class="lbl">Characters</div>
+    </div>
+
+  </div>
+</div>
+        <!-- ============ RECOMMENDATION ============ -->
+    <div class="card" style="margin-bottom:16px;">
+      <div class="eyebrow">
+        <span>Recommendation</span>
+        <span class="idx">04</span>
+      </div>
+
+      <div class="recommendation-box">
+        {{ recommendation }}
+      </div>
+    </div>
+
+  </div>   
+
+  <div class="stamp">— end of readout —</div>
+
+{% endif %}
+
+</div>
+
+{% if result %}
+<script>
+window.__RESULT__ = {
+    confidence: {{ confidence|default:0 }}
+};
+</script>
+{% endif %}
+
+<script src="{% static 'sentiment/main.js' %}"></script>
+</body>
+</html>

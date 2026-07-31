@@ -1,0 +1,120 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>CSV Analytics</title>
+
+    <link rel="stylesheet" href="{% static 'sentiment/csv_dashboard.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+<div class="wrap">
+
+    <div class="masthead">
+        <div class="tag">CSV Batch Analysis</div>
+    </div>
+
+    <h1 class="title">
+        Dataset <em>Analytics</em>
+    </h1>
+
+    <!-- Statistics -->
+
+    <div class="stats-grid">
+
+        <div class="stat-card">
+            <div class="icon">📄</div>
+            <div class="number">{{ total_reviews }}</div>
+            <div class="label">Reviews</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="icon">📝</div>
+            <div class="number">{{ total_words }}</div>
+            <div class="label">Words</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="icon">🔤</div>
+            <div class="number">{{ total_characters }}</div>
+            <div class="label">Characters</div>
+        </div>
+
+    </div>
+
+
+    <!-- Pie Chart -->
+
+    <div class="chart-card">
+
+        <h2>Sentiment Distribution</h2>
+
+        <canvas id="pieChart"></canvas>
+
+    </div>
+
+
+    <div class="back-btn">
+
+        <a href="/">← Analyze Another Dataset</a>
+
+    </div>
+
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+const ctx = document.getElementById('pieChart');
+
+new Chart(ctx, {
+
+    type: 'pie',
+
+    data: {
+
+        labels: ['Positive', 'Negative'],
+
+        datasets: [{
+
+            data: [
+                {{ positive_count }},
+                {{ negative_count }}
+            ],
+
+            backgroundColor: [
+                '#2E8B6D',
+                '#B84A4A'
+            ]
+
+        }]
+
+    },
+
+    options: {
+
+        responsive: true,
+
+        plugins: {
+
+            legend: {
+
+                position: 'bottom'
+
+            }
+
+        }
+
+    }
+
+});
+</script>
+</body>
+</html>
